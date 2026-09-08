@@ -1,0 +1,4 @@
+interface:
+  display_name: "SKILL_TICKET_MANAGE"
+  short_description: "Coordinate Flow roadmaps and spec-first tickets"
+  default_prompt: "Use $skill-ticket-manage to coordinate a Flow roadmap, ticket dependencies, independent review, and guarded closeout."

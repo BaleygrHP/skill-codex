@@ -1,0 +1,32 @@
+{
+  "issue_dir": "Issue",
+  "prefix": "TD",
+  "digits": 6,
+  "required_files": [
+    "README.md",
+    "spec.md",
+    "discuss.md",
+    "diff-note.md",
+    "review.md",
+    "outscope.md"
+  ],
+  "statuses": [
+    "OPEN",
+    "SPEC-READY",
+    "IN-PROGRESS",
+    "IN-REVIEW",
+    "DONE"
+  ],
+  "flow_dir": "FLOW",
+  "flow_prefix": "FL",
+  "flow_digits": 6,
+  "flow_statuses": [
+    "DRAFT",
+    "PLANNED",
+    "ACTIVE",
+    "VALIDATING",
+    "DONE",
+    "BLOCKED",
+    "CANCELLED"
+  ]
+}
