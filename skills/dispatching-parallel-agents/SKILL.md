@@ -7,16 +7,20 @@ description: Review a task, ticket, or Flow for development work that can run in
 
 ## User policy for Codex projects
 
-Apply this policy to independent implementation tasks as well as investigations. The following local policy takes precedence over generic examples below.
+Within applicable project instructions, AGENTS.md rules, and authorization boundaries, apply this current user policy to independent implementation tasks as well as investigations. It supersedes older role assignments and the generic examples below without weakening higher-priority instructions or project-specific governance.
 
-- Use GPT-6 Astra (`gpt-6-astra`) for main coordination, dependency analysis, code review, integration decisions, and task/Flow status updates. A skill does not change the running main model: if it is different, disclose that limitation and use an Astra subagent for the coordination/review work when available; do not claim the main model was changed.
-- Delegate implementation and its scoped tests to GPT-5.6 Luna (`gpt-5.6-luna`) with reasoning effort `max`. The current spawn tool supports Luna through `max`, not `ultra`. Check the runtime tool schema before dispatch; do not silently substitute another model or effort if unavailable.
+- Use GPT-6 Astra (`gpt-6-astra`) for read-only research, analysis, dependency planning and execution maps, coordination/dispatch, code review, integration decisions about required corrections, and final evidence assessment/summary. Astra does not edit implementation, documentation, or ticket/Flow records; it reports findings and requests execution.
+- Delegate 100% of execution to GPT-5.6 Luna (`gpt-5.6-luna`) with reasoning effort `max`: implementation, integration edits, review-driven fixes, documentation and authorized ticket/Flow record updates, and all test execution. Luna does not self-approve; Astra performs the read-only review and final evidence assessment. The current spawn tool supports Luna through `max`, not `ultra`. Check the runtime tool schema before dispatch; do not silently substitute another model or effort if unavailable.
+- Follow this handoff sequence: Astra researches, analyzes, plans dependencies, and dispatches; Luna implements and integrates; Astra reviews the actual changes read-only; Luna applies authorized fixes and documentation updates; Luna runs the final tests; Astra performs the final read-only review and evidence summary. If final fixes or tests change reviewed content, repeat Astra's review and the affected tests; never reuse stale approval or fabricate signoff.
+- A skill cannot change the running main model. If Astra is the main model, it performs research/analysis/planning/coordination and routes execution to Luna; if Luna is the main model, it requests Astra for those activities and for read-only review, then executes the authorized work. State the actual model and role handoff; do not claim that the skill switched models. If a required model is unavailable, report that explicitly rather than silently substituting another model or effort.
+- Luna may run useful scoped tests during implementation. Final test evidence follows the final code, documentation, and authorized ticket/Flow edits after review fixes; record-only changes need applicable documentation checks, while broader runtime tests should be repeated when behavior changed.
+- When authorized to update records, Luna records Astra's actual review verdict, evidence, and blockers faithfully. Luna never self-approves or manufactures Astra approval or signoff.
 - Identify prerequisite edges and file/resource ownership first. Dispatch ready, independent work together without waiting for unrelated tasks. Wait only for actual prerequisites or capacity limits. Keep useful coordination/review work moving while implementers run.
 - Give each agent a self-contained brief: goal, repository/worktree and baseline, owned files, interfaces, prerequisites, acceptance criteria, test commands, and expected report. Use `fork_turns: "none"` when specifying model/effort overrides with Codex collaboration tools.
 - Prefer peer implementers under the main coordinator. Nested delegation is allowed for a concrete independent subtask if it improves throughput; keep implementation on Luna `max`, report ownership to the main, and respect the shared live-agent limit. Do not spawn duplicate work or create separate user-owned Codex tasks for subtasks.
 - Shared filesystem writes must have disjoint ownership; coordinate shared contracts, migrations, fixtures, ports, and services. Use separate worktrees where useful, but do not assume they isolate shared runtime resources. Preserve unrelated changes.
-- Astra reviews the actual diff and test evidence, sends needed implementation corrections back to Luna, then verifies the integrated result with tests appropriate to the affected scope. Run the full relevant suite when required by the task or project. Do not infer full acceptance from scoped tests.
-- Keep task/Flow lifecycle changes with the main and follow the project's governing workflow. Delegation does not grant permission to commit, push, deploy, publish, or close a Flow.
+- Astra reviews the actual diff and available test evidence read-only, sends needed implementation corrections back to Luna, and assesses the integrated result after Luna runs tests appropriate to the affected scope. Run the full relevant suite when required by the task or project. Do not infer full acceptance from scoped tests.
+- Keep task/Flow lifecycle changes within the project's governing workflow. Luna may make documentation or ticket/Flow record updates only when authorized; Astra reviews those changes read-only. Delegation does not grant permission to commit, push, deploy, publish, or close a Flow.
 
 This is a local customization of `obra/superpowers`' `dispatching-parallel-agents`; preserve this policy when updating the upstream skill.
 
@@ -58,7 +62,7 @@ Dispatch ready deliverables up to the available capacity, prioritizing work that
 
 Assign a single owner to shared contracts, migrations, or integration files. Settle required interface decisions before dependent implementation. If ownership cannot be separated, serialize the affected writes or use isolated worktrees with an explicit integration owner; shared runtime resources still need coordination.
 
-After an agent finishes or discovers a changed dependency, Astra checks its actual changes and relevant evidence, updates the execution map, and releases only the deliverables whose prerequisites are now met. Notify affected agents of interface changes and revalidate their assumptions. Keep implementation, tests, integration, review, and acceptance status distinct; an agent's completion report alone does not close a ticket or Flow.
+After Luna finishes or discovers a changed dependency, Astra checks the actual changes and relevant evidence read-only, updates the execution map, and releases only the deliverables whose prerequisites are now met. Notify affected agents of interface changes and revalidate their assumptions. Luna owns implementation, integration fixes, authorized documentation/ticket records, and test execution; Astra owns research, coordination, review, and final evidence assessment. Keep implementation, tests, integration, review, and acceptance status distinct; an agent's completion report alone does not close a ticket or Flow.
 
 ### Decision examples
 
@@ -119,7 +123,7 @@ Each domain is independent - fixing tool approval doesn't affect abort tests.
 
 ### 2. Create Focused Agent Tasks
 
-Each agent gets:
+Each Luna implementation agent gets:
 - **Specific scope:** One test file or subsystem
 - **Clear goal:** Make these tests pass
 - **Constraints:** Don't change other code
@@ -127,12 +131,12 @@ Each agent gets:
 
 ### 3. Dispatch in Parallel
 
-Issue all three subagent dispatches in the same response — they run in parallel:
+Astra issues all ready Luna implementation dispatches in the same response — they run in parallel:
 
 ```text
-Subagent (general-purpose): "Fix agent-tool-abort.test.ts failures"
-Subagent (general-purpose): "Fix batch-completion-behavior.test.ts failures"
-Subagent (general-purpose): "Fix tool-approval-race-conditions.test.ts failures"
+Luna (`gpt-5.6-luna`, `max`): "Fix agent-tool-abort.test.ts failures"
+Luna (`gpt-5.6-luna`, `max`): "Fix batch-completion-behavior.test.ts failures"
+Luna (`gpt-5.6-luna`, `max`): "Fix tool-approval-race-conditions.test.ts failures"
 # All three run concurrently.
 ```
 
@@ -140,11 +144,11 @@ Submit each independent dispatch without waiting for earlier agents to finish. T
 
 ### 4. Review and Integrate
 
-When agents return:
-- Read each summary
-- Verify fixes don't conflict
-- Run tests appropriate to the affected scope and the full relevant suite when required
-- Integrate all changes
+When Luna returns:
+- Astra reads the summary and reviews the actual changes and evidence without editing them.
+- Astra identifies conflicts or required corrections and sends a bounded implementation brief to Luna.
+- Luna integrates authorized changes, applies review fixes, updates authorized documentation or ticket records, and runs the affected and required final tests.
+- Astra performs the final read-only evidence assessment. If final fixes or tests changed reviewed content, repeat Astra's review and the affected tests before reporting a verdict.
 
 ## Agent Prompt Structure
 
@@ -218,12 +222,12 @@ Agent 3 → Fix tool-approval-race-conditions.test.ts
 - Agent 2: Fixed event structure bug (threadId in wrong place)
 - Agent 3: Added wait for async tool execution to complete
 
-**Integration:** All fixes independent, no conflicts, full suite green
+**Review and integration:** Astra's read-only review found no conflicts; Luna integrated the fixes and ran the final suite, which was green.
 
 ## Verification
 
-After agents return:
-1. **Review each summary** - Understand what changed
-2. **Check for conflicts** - Did agents edit same code?
-3. **Verify integration** - Run affected-scope tests and the full relevant suite when required
-4. **Spot check** - Agents can make systematic errors
+After Luna returns:
+1. **Review each summary** - Astra understands what changed and checks the actual diff read-only
+2. **Check for conflicts** - Astra identifies whether Luna agents edited the same code
+3. **Integrate and test** - Luna applies authorized corrections and runs affected-scope tests and the full relevant suite when required
+4. **Spot check and assess evidence** - Astra performs the final read-only assessment; repeat review and affected tests if final changes alter reviewed content
