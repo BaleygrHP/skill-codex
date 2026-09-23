@@ -16,11 +16,87 @@ Within applicable project instructions, AGENTS.md rules, and authorization bound
 - Luna may run useful scoped tests during implementation. Final test evidence follows the final code, documentation, and authorized ticket/Flow edits after review fixes; record-only changes need applicable documentation checks, while broader runtime tests should be repeated when behavior changed.
 - When authorized to update records, Luna records Astra's actual review verdict, evidence, and blockers faithfully. Luna never self-approves or manufactures Astra approval or signoff.
 - Identify prerequisite edges and file/resource ownership first. Dispatch ready, independent work together without waiting for unrelated tasks. Wait only for actual prerequisites or capacity limits. Keep useful coordination/review work moving while implementers run.
-- Give each agent a self-contained brief: goal, repository/worktree and baseline, owned files, interfaces, prerequisites, acceptance criteria, test commands, and expected report. Use `fork_turns: "none"` when specifying model/effort overrides with Codex collaboration tools.
+- Give each agent a self-contained brief: goal, repository/worktree and baseline, owned files, interfaces, prerequisites, acceptance criteria, test commands, and expected report. When using collaboration tools, pass only model, reasoning, and other override fields supported by the current tool schema; do not add fields that the schema does not expose.
 - Prefer peer implementers under the main coordinator. Nested delegation is allowed for a concrete independent subtask if it improves throughput; keep implementation on Luna `max`, report ownership to the main, and respect the shared live-agent limit. Do not spawn duplicate work or create separate user-owned Codex tasks for subtasks.
 - Shared filesystem writes must have disjoint ownership; coordinate shared contracts, migrations, fixtures, ports, and services. Use separate worktrees where useful, but do not assume they isolate shared runtime resources. Preserve unrelated changes.
 - Astra reviews the actual diff and available test evidence read-only, sends needed implementation corrections back to Luna, and assesses the integrated result after Luna runs tests appropriate to the affected scope. Run the full relevant suite when required by the task or project. Do not infer full acceptance from scoped tests.
 - Keep task/Flow lifecycle changes within the project's governing workflow. Luna may make documentation or ticket/Flow record updates only when authorized; Astra reviews those changes read-only. Delegation does not grant permission to commit, push, deploy, publish, or close a Flow.
+
+## Routing and complexity guardrails
+
+Classify the request before dispatching. This router is a planning aid, not a model switch and not an override of the role policy above.
+
+- **Simple/read-only:** search, explain, inspect, diff, or a bounded single-file change with a clear contract. Keep it with the current coordinator when no independent implementation is needed; do not invoke Astra merely because a repository is involved.
+- **Clear implementation:** after the required contract and dependency context is established, route authorized source, documentation, integration, and test execution to GPT-5.6 Luna (`max`).
+- **Escalation candidates:** architecture or large refactor, cross-module impact, ambiguous business logic, security, concurrency or consistency, migration, production root-cause uncertainty, low confidence, or a blocked implementation. Astra handles the research, analysis, decision, coordination, and read-only review; Luna implements and tests.
+
+Use a lightweight score when useful: `+3` for architecture/refactor/migration, `+2` for cross-module impact, ambiguity, security, concurrency/consistency, or uncertain root cause, and `-2` for a single-file, clear, simple change. Treat `score <= 1` as coordinator-owned, `2-4` as coordinator discovery plus Luna execution, and `>= 5` as Astra decision/coordination before implementation. Actual dependencies, governance, and evidence override the score. The score never skips Astra's required role.
+
+The skill cannot change the running main model. If Astra is current, Astra researches, plans, coordinates, dispatches Luna, and reviews; if Luna is current, Luna requests Astra for those required activities and executes only the authorized work. State the actual model and handoff, never silently substitute a model or effort, and do not introduce an executor requirement unsupported by the runtime.
+
+## Compact context and handoffs
+
+Keep three context layers:
+
+1. **Raw context:** files, logs, diffs, and command output used by discovery workers.
+2. **Working summary:** relevant files/functions, dependencies, findings, and evidence retained by the coordinator.
+3. **Decision context:** only critical facts, constraints, unresolved decisions, candidate solutions, and exact questions sent to Astra.
+
+Do not send Astra a raw repository dump or repeat broad scans. When escalation is needed, provide a compact package containing:
+
+```yaml
+problem:
+expected_behavior:
+observed_behavior:
+evidence:
+  - file:
+    lines:
+    description:
+current_flow:
+hypotheses:
+candidate_solutions:
+constraints:
+questions:
+```
+
+Every Luna worker should return a compact, standardized result, normally about 1k-3k tokens unless evidence requires more:
+
+```yaml
+summary:
+files:
+  - path:
+    relevance:
+findings:
+  - finding:
+    evidence:
+    confidence:
+next_step:
+needs_astra: false
+```
+
+When handing implementation to Luna, include an explicit brief:
+
+```yaml
+objective:
+files_to_modify:
+changes:
+do_not_change:
+edge_cases:
+tests_required:
+acceptance_criteria:
+```
+
+Acceptance criteria in a handoff are checks to perform, not proof that the checks passed.
+
+## Dispatch budget, retries, and observability
+
+Use `max_parallel_workers: 3` as the default guideline, subject to runtime capacity, project limits, and disjoint ownership. Dispatch only genuinely independent work; do not spawn duplicate broad repository scans. Shared contracts, migrations, generated outputs, and runtime resources remain serialized or have one explicit owner.
+
+Retry narrowly at most once when a Luna worker can make useful progress with a smaller scope. If the issue remains blocked or the decision is architectural/root-cause uncertainty, escalate the compact evidence package to Astra. A single command or test failure is not by itself an escalation reason. Never retry indefinitely or repeat an unchanged escalation.
+
+When the runtime supports it, use reasoning effort `medium` by default for Astra escalation and coordination. Use `high`, `xhigh`, or `max` only when the risk or unresolved issue warrants it. Aim for about two substantive Astra calls per task as a guideline, not a hard cap; if review, safety, or governance requires more, record the reason explicitly.
+
+When the platform exposes the data, record models used, spawn count, escalation reason, result status, applicable build/test status, and duration. Do not invent token telemetry, usage percentages, runtime proof, or approval evidence when unavailable. Acceptance and rollout reports must distinguish implementation, tests, read-only review, integration/runtime, deployment, approval, and Flow closure; report observed evidence and remaining gates only.
 
 This is a local customization of `obra/superpowers`' `dispatching-parallel-agents`; preserve this policy when updating the upstream skill.
 
