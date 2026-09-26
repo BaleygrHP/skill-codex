@@ -1,309 +1,240 @@
 ---
 name: dispatching-parallel-agents
-description: Review a task, ticket, or Flow for development work that can run in parallel, then coordinate independent agents with explicit dependencies and ownership.
+description: Review a task, ticket, or Flow for independent work, then route discovery, implementation, review, and architectural decisions with explicit dependencies and ownership.
 ---
 
 # Dispatching Parallel Agents
 
-## User policy for Codex projects
+Coordinate independent work with compact evidence and stable roles. Keep discovery and
+scheduling inexpensive; request architectural decisions only when justified.
+This is a local customization of [obra/superpowers](https://github.com/obra/superpowers)
+and its `dispatching-parallel-agents` skill; preserve attribution.
 
-Within applicable project instructions, AGENTS.md rules, and authorization boundaries, apply this current user policy to independent implementation tasks as well as investigations. It supersedes older role assignments and the generic examples below without weakening higher-priority instructions or project-specific governance.
+## Authority, roles, and runtime
 
-- Use GPT-6 Astra (`gpt-6-astra`) for read-only research, analysis, dependency planning and execution maps, coordination/dispatch, code review, integration decisions about required corrections, and final evidence assessment/summary. Astra does not edit implementation, documentation, or ticket/Flow records; it reports findings and requests execution.
-- Delegate 100% of execution to GPT-5.6 Luna (`gpt-5.6-luna`) with reasoning effort `max`: implementation, integration edits, review-driven fixes, documentation and authorized ticket/Flow record updates, and all test execution. Luna does not self-approve; Astra performs the read-only review and final evidence assessment. The current spawn tool supports Luna through `max`, not `ultra`. Check the runtime tool schema before dispatch; do not silently substitute another model or effort if unavailable.
-- Follow this handoff sequence: Astra researches, analyzes, plans dependencies, and dispatches; Luna implements and integrates; Astra reviews the actual changes read-only; Luna applies authorized fixes and documentation updates; Luna runs the final tests; Astra performs the final read-only review and evidence summary. If final fixes or tests change reviewed content, repeat Astra's review and the affected tests; never reuse stale approval or fabricate signoff.
-- A skill cannot change the running main model. If Astra is the main model, it performs research/analysis/planning/coordination and routes execution to Luna; if Luna is the main model, it requests Astra for those activities and for read-only review, then executes the authorized work. State the actual model and role handoff; do not claim that the skill switched models. If a required model is unavailable, report that explicitly rather than silently substituting another model or effort.
-- Luna may run useful scoped tests during implementation. Final test evidence follows the final code, documentation, and authorized ticket/Flow edits after review fixes; record-only changes need applicable documentation checks, while broader runtime tests should be repeated when behavior changed.
-- When authorized to update records, Luna records Astra's actual review verdict, evidence, and blockers faithfully. Luna never self-approves or manufactures Astra approval or signoff.
-- Identify prerequisite edges and file/resource ownership first. Dispatch ready, independent work together without waiting for unrelated tasks. Wait only for actual prerequisites or capacity limits. Keep useful coordination/review work moving while implementers run.
-- Give each agent a self-contained brief: goal, repository/worktree and baseline, owned files, interfaces, prerequisites, acceptance criteria, test commands, and expected report. When using collaboration tools, pass only model, reasoning, and other override fields supported by the current tool schema; do not add fields that the schema does not expose.
-- Prefer peer implementers under the main coordinator. Nested delegation is allowed for a concrete independent subtask if it improves throughput; keep implementation on Luna `max`, report ownership to the main, and respect the shared live-agent limit. Do not spawn duplicate work or create separate user-owned Codex tasks for subtasks.
-- Shared filesystem writes must have disjoint ownership; coordinate shared contracts, migrations, fixtures, ports, and services. Use separate worktrees where useful, but do not assume they isolate shared runtime resources. Preserve unrelated changes.
-- Astra reviews the actual diff and available test evidence read-only, sends needed implementation corrections back to Luna, and assesses the integrated result after Luna runs tests appropriate to the affected scope. Run the full relevant suite when required by the task or project. Do not infer full acceptance from scoped tests.
-- Keep task/Flow lifecycle changes within the project's governing workflow. Luna may make documentation or ticket/Flow record updates only when authorized; Astra reviews those changes read-only. Delegation does not grant permission to commit, push, deploy, publish, or close a Flow.
+Explicit user overrides take precedence over this skill, including its routing and
+role defaults. Respect higher-priority instructions and applicable project governance.
+Read-only requests remain read-only. Inspect related work for context without expanding
+the authorized implementation scope. Preserve unrelated changes.
 
-## Routing and complexity guardrails
+Before dispatch, read [references/model-routing.md](references/model-routing.md)
+for the approved model and effort mapping, and inspect the fresh runtime tool schema
+for supported models, efforts, override fields, and capacity. Reuse the verified resolution
+while runtime availability and user choices remain unchanged. The reference owns concrete
+assignments; this workflow uses only these stable roles:
 
-Classify the request before dispatching. This router is a planning aid, not a model switch and not an override of the role policy above.
+| Role | Responsibility |
+| --- | --- |
+| coordinator | Discover, classify, map dependencies, dispatch, aggregate, and assess final evidence. |
+| explorer | Inspect a bounded domain read-only and return evidence and uncertainties. |
+| executor | Implement, integrate, fix, update authorized records, and run required checks. |
+| reviewer | Independently assess actual changes, tests, risks, and governing review gates. |
+| architect | Resolve a difficult decision read-only from compact evidence; return a decision brief. |
 
-- **Simple/read-only:** search, explain, inspect, diff, or a bounded single-file change with a clear contract. Keep it with the current coordinator when no independent implementation is needed; do not invoke Astra merely because a repository is involved.
-- **Clear implementation:** after the required contract and dependency context is established, route authorized source, documentation, integration, and test execution to GPT-5.6 Luna (`max`).
-- **Escalation candidates:** architecture or large refactor, cross-module impact, ambiguous business logic, security, concurrency or consistency, migration, production root-cause uncertainty, low confidence, or a blocked implementation. Astra handles the research, analysis, decision, coordination, and read-only review; Luna implements and tests.
+The current main coordinates; follow the reference's mismatch disclosure and binding rules.
+Never claim the skill switched the main or spawn a coordinator to pretend it changed.
+Use only supported runtime fields and explicitly approved fallbacks.
+If delegation or an effective binding is unavailable/unverified, block dependent dispatch;
+report it and continue independent work with valid bindings and authority. Never substitute silently.
 
-Use a lightweight score when useful: `+3` for architecture/refactor/migration, `+2` for cross-module impact, ambiguity, security, concurrency/consistency, or uncertain root cause, and `-2` for a single-file, clear, simple change. Treat `score <= 1` as coordinator-owned, `2-4` as coordinator discovery plus Luna execution, and `>= 5` as Astra decision/coordination before implementation. Actual dependencies, governance, and evidence override the score. The score never skips Astra's required role.
+Delegation grants no authority to commit, push, deploy, publish, or close tickets/Flows.
+Record changes and lifecycle operations require existing user authorization and the
+project's governing workflow. Never manufacture approval, sign-off, or runtime proof.
 
-The skill cannot change the running main model. If Astra is current, Astra researches, plans, coordinates, dispatches Luna, and reviews; if Luna is current, Luna requests Astra for those required activities and executes only the authorized work. State the actual model and handoff, never silently substitute a model or effort, and do not introduce an executor requirement unsupported by the runtime.
+## Classify and route
 
-## Compact context and handoffs
+The coordinator establishes relevant contracts and evidence before routing:
 
-Keep three context layers:
+- Simple read-only search, explanation, log inspection, or diff: handle directly;
+  no architect and no worker unless independent discovery adds value.
+- Independent read-only domains: dispatch disjoint explorers concurrently.
+- Clear implementation: send a bounded brief directly to an executor, including
+  single-file edits. A small score does not make implementation coordinator work.
+- Complex architecture, security, concurrency, consistency, or ambiguous business
+  decisions: gather evidence, obtain a compact architect decision, then send the
+  resolved implementation brief to an executor.
+- Independent review: use a reviewer when requested, required by project governance,
+  or warranted by risk. Apply its default mapping; review is not an automatic architect call.
 
-1. **Raw context:** files, logs, diffs, and command output used by discovery workers.
-2. **Working summary:** relevant files/functions, dependencies, findings, and evidence retained by the coordinator.
-3. **Decision context:** only critical facts, constraints, unresolved decisions, candidate solutions, and exact questions sent to Astra.
+Use a lightweight score as a heuristic: start at zero; add `+3` for architecture or a
+large refactor, `+2` each for cross-module impact, ambiguity, uncertain production root
+cause, security, concurrency/consistency, or migration; subtract `2` each for a simple
+single-file change and clear implementation. Scores `<=1` suggest simple handling,
+`2-4` clear implementation, and `>=5` an architect decision before implementation.
+Risk triggers and actual dependencies override arithmetic. State the unresolved
+decision and its risk before invoking an architect; a failing command or test alone
+does not justify escalation.
 
-Do not send Astra a raw repository dump or repeat broad scans. When escalation is needed, provide a compact package containing:
+An executor never self-approves. A reviewer must be independent of the implementation
+it reviews. The coordinator's aggregation is not a substitute for required review.
 
-```yaml
-problem:
-expected_behavior:
-observed_behavior:
-evidence:
-  - file:
-    lines:
-    description:
-current_flow:
-hypotheses:
-candidate_solutions:
-constraints:
-questions:
-```
+## Preflight: task, Flow, and tickets
 
-Every Luna worker should return a compact, standardized result, normally about 1k-3k tokens unless evidence requires more:
+Before implementation dispatch, the coordinator reviews the overall requested Flow,
+its member tickets, full relevant specifications/source of truth, and linked
+prerequisites or consumers needed to understand affected interfaces. Keep this overview
+within authorized scope; neighboring tickets provide context, not permission to implement.
+For standalone work, inspect its subtasks without inventing a ticket system.
+
+Identify each ticket by repository plus ID because IDs can repeat across repositories.
+Verify repository/worktree, branch, baseline commit, dirty state, active ownership,
+available capacity, and affected source before trusting recorded status. Preserve existing
+changes; mark any overlapping work and resolve ownership before edits.
+
+For each dependency, retain the required artifact/condition, supporting evidence, and stage:
+
+- Development prerequisite: an interface, decision, schema, or artifact needed to implement.
+- Integration/runtime gate: development can use an established contract, but combined or
+  real runtime verification must wait.
+- Acceptance/release gate: review, sign-off, deployment, or closure must wait; development
+  is blocked only if governing rules or actual prerequisites say so.
+- Shared resource constraint: files, contracts, migrations, generated outputs, fixtures,
+  databases, ports, or services require an explicit owner or exclusive schedule.
+
+An open predecessor alone does not block all downstream development. Separate tickets
+or directories alone do not prove independence. Inspect ambiguous dependency reasons
+and governing specifications; keep uncertain dependent work pending while progressing
+supported independent work. Never silently remove an explicit governance gate.
+
+Split partially blocked tickets only where established contracts support bounded
+deliverables with separable ownership. Pure modules, adapters, UI components, or contract
+tests may proceed against those contracts. Do not invent contracts to create parallelism.
+Fixtures, mocks, and offline tests are local evidence, not integration/runtime acceptance.
+
+## Execution map and scheduling
+
+Publish a compact execution map before implementation dispatch; group equivalent rows:
+
+| Repo / ticket / deliverable | Evidence / baseline | Development prerequisites | Integration / acceptance gates | File / resource owner | Readiness / blocker |
+| --- | --- | --- | --- | --- | --- |
+
+Show ready work, dependency edges, shared-contract owners, and planned integration checks.
+The map is reviewable coordination, not an extra approval gate for authorized work.
+When useful independence is absent, explain the dependency and proceed sequentially.
+
+Default to at most three concurrent workers, always within the global live-agent capacity
+and project limits. Count explorers, executors, reviewers, architects, and nested workers
+against shared capacity. Prefer peers; allow nested delegation only for an independent,
+owned subtask whose scope and capacity are reported to the coordinator. Do not create
+separate user-owned tasks for subtasks or duplicate work already assigned.
+
+Submit ready independent work without waiting for unrelated workers. Prioritize work
+that unlocks successors. Start newly unblocked work as soon as evidence confirms its
+prerequisite and a slot opens; planned groups are not synchronization barriers.
+
+Give shared contracts, migrations, generated outputs, and integration files one owner.
+Serialize overlapping writes or use isolated worktrees with an integration owner.
+Worktrees do not isolate shared runtime resources; schedule those separately.
+
+On completion or a changed dependency, inspect actual results and evidence, update the
+map, notify affected workers of interface changes, and revalidate assumptions. Release
+only work whose prerequisites are now met. Close completed agents once their results
+and evidence are retained; keep useful independent coordination moving meanwhile.
+
+## Context and handoff contracts
+
+Maintain three layers: L1 raw files/logs/diffs/command output; L2 coordinator working
+summary of relevant findings, functions, dependencies, and uncertainties; L3 decision
+context of critical facts, constraints, options, and unresolved questions for the architect.
+Retain exact evidence references through every layer: repository/path and lines or symbols,
+baseline/SHA, test/command and result, or precise log/event identity as appropriate.
+Permit targeted source inspection when a decision needs it; avoid broad repeat scanning.
+
+Construct self-contained prompts with role, objective, repository/worktree and baseline,
+owned files/resources, interfaces, prerequisites, authorization boundaries, relevant
+evidence, required checks, and expected output. Do not clone full session history or
+send raw repository dumps. Handoff fields below are prompt content, not invented tool fields.
+
+Keep worker results concise: up to roughly 1-3k tokens, not a minimum; exceed only for necessary evidence:
 
 ```yaml
 summary:
-files:
-  - path:
-    relevance:
-findings:
-  - finding:
-    evidence:
-    confidence:
-next_step:
-needs_astra: false
+files: # paths and relevance
+findings: # each includes evidence and confidence
+possible_issue:
+recommended_next_step:
+needs_architect: false
+reason: # why escalation is or is not needed
 ```
 
-When handing implementation to Luna, include an explicit brief:
+Send an executor a resolved implementation brief:
 
 ```yaml
 objective:
-files_to_modify:
+files: # owned paths
+functions: # affected symbols/interfaces
 changes:
 do_not_change:
 edge_cases:
-tests_required:
-acceptance_criteria:
+tests_required: # commands, scope, prerequisites
+acceptance: # observable criteria and remaining gates
 ```
 
-Acceptance criteria in a handoff are checks to perform, not proof that the checks passed.
+Send an architect a compact escalation package:
 
-## Dispatch budget, retries, and observability
-
-Use `max_parallel_workers: 3` as the default guideline, subject to runtime capacity, project limits, and disjoint ownership. Dispatch only genuinely independent work; do not spawn duplicate broad repository scans. Shared contracts, migrations, generated outputs, and runtime resources remain serialized or have one explicit owner.
-
-Retry narrowly at most once when a Luna worker can make useful progress with a smaller scope. If the issue remains blocked or the decision is architectural/root-cause uncertainty, escalate the compact evidence package to Astra. A single command or test failure is not by itself an escalation reason. Never retry indefinitely or repeat an unchanged escalation.
-
-When the runtime supports it, use reasoning effort `medium` by default for Astra escalation and coordination. Use `high`, `xhigh`, or `max` only when the risk or unresolved issue warrants it. Aim for about two substantive Astra calls per task as a guideline, not a hard cap; if review, safety, or governance requires more, record the reason explicitly.
-
-When the platform exposes the data, record models used, spawn count, escalation reason, result status, applicable build/test status, and duration. Do not invent token telemetry, usage percentages, runtime proof, or approval evidence when unavailable. Acceptance and rollout reports must distinguish implementation, tests, read-only review, integration/runtime, deployment, approval, and Flow closure; report observed evidence and remaining gates only.
-
-This is a local customization of `obra/superpowers`' `dispatching-parallel-agents`; preserve this policy when updating the upstream skill.
-
-## Flow and ticket overview before dispatch
-
-For ticket/Flow work, perform this overview before spawning implementation agents, even when the user has not already identified independent tasks. For a standalone task, apply the same reasoning to its subtasks without inventing a ticket system.
-
-### Establish scope and current evidence
-
-Read the requested Flow, its member tickets, relevant specifications/source of truth, and linked prerequisites or consumers needed to assess the affected interfaces. Identify each ticket by repository plus ID; IDs may repeat across repositories. Inspect the actual checkout, branch/commit, existing changes, active agents, and relevant code before relying on recorded status. Limit exploration to the requested scope and dependencies that affect the decision.
-
-Reviewing the whole Flow does not authorize implementing every ticket in it. Preserve the user's authorized implementation scope. A review-only request produces a proposed schedule without starting implementation or changing lifecycle state. Use the project's applicable ticket/Flow governance instructions and skills when interpreting or updating that system.
-
-### Separate development prerequisites from later gates
-
-For each dependency, record what artifact or condition is needed, the evidence supporting it, and which stage it blocks:
-
-- **Development:** Work cannot be implemented correctly until an interface, decision, schema, or upstream artifact exists.
-- **Integration/runtime:** Independent development can proceed against an established contract, but combined or real-runtime verification must wait.
-- **Acceptance/release:** Review, sign-off, deployment, or ticket/Flow closure must wait; this does not automatically block development unless the project's rules explicitly say so.
-- **Shared resources:** Files, migrations, generated outputs, databases, ports, services, or other state require exclusive ownership or an agreed schedule.
-
-An open predecessor ticket alone does not prove that all downstream development is blocked. Conversely, separate ticket names or directories do not prove independence. If a declared dependency is ambiguous, inspect its reason and governing specification; keep the dependent part pending when the prerequisite remains uncertain, while advancing supported independent work. Do not silently remove or reinterpret explicit governance gates.
-
-Split partially blocked tickets into bounded deliverables when useful. A pure module, UI component, adapter, or contract test may proceed if its needed inputs are established and its files/resources can be owned separately. Mark contract-backed fixtures or mocks as local evidence; they do not satisfy real integration or acceptance gates. Do not invent a contract merely to create parallel work.
-
-### Publish a compact execution map
-
-Before implementation dispatch, present a concise table or equivalent covering every in-scope deliverable. Group genuinely equivalent rows for large Flows:
-
-| Repo / ticket / deliverable | Current evidence | Development prerequisites | Integration / acceptance gates | File and resource owner | Ready now or blocked, with reason |
-| --- | --- | --- | --- | --- | --- |
-
-Identify the first ready group, later dependency edges, any shared-contract work that must happen first, and the planned integration checks. This is a reviewable plan, not a new approval gate when implementation is already authorized. If nothing benefits from parallel execution, explain the concrete dependency and continue sequentially.
-
-### Schedule and reassess continuously
-
-Dispatch ready deliverables up to the available capacity, prioritizing work that unlocks downstream tasks. Groups are a planning aid, not a barrier: start newly unblocked work as soon as its prerequisite is verified and a slot is available, without waiting for unrelated agents in the same group.
-
-Assign a single owner to shared contracts, migrations, or integration files. Settle required interface decisions before dependent implementation. If ownership cannot be separated, serialize the affected writes or use isolated worktrees with an explicit integration owner; shared runtime resources still need coordination.
-
-After Luna finishes or discovers a changed dependency, Astra checks the actual changes and relevant evidence read-only, updates the execution map, and releases only the deliverables whose prerequisites are now met. Notify affected agents of interface changes and revalidate their assumptions. Luna owns implementation, integration fixes, authorized documentation/ticket records, and test execution; Astra owns research, coordination, review, and final evidence assessment. Keep implementation, tests, integration, review, and acceptance status distinct; an agent's completion report alone does not close a ticket or Flow.
-
-### Decision examples
-
-- Backend and UI tickets share a documented API contract: develop in parallel with separate ownership; real end-to-end verification waits for the backend runtime.
-- A predecessor awaits release approval but its required contract is stable: downstream development may proceed if project rules permit; release remains blocked.
-- Two features require an undecided schema or edit the same migration: resolve the schema and assign its owner first; unrelated pure logic may proceed meanwhile.
-- A user requests only one ticket in a larger Flow: inspect neighbors to understand dependencies, but dispatch implementation only for the authorized ticket's deliverables.
-
-## Overview
-
-You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
-
-When you have multiple unrelated failures (different test files, different subsystems, different bugs), investigating them sequentially wastes time. Each investigation is independent and can happen in parallel.
-
-**Core principle:** Dispatch one agent per independent problem domain. Let them work concurrently.
-
-## When to Use
-
-```dot
-digraph when_to_use {
-    "Multiple failures?" [shape=diamond];
-    "Are they independent?" [shape=diamond];
-    "Single agent investigates all" [shape=box];
-    "One agent per problem domain" [shape=box];
-    "Can they work in parallel?" [shape=diamond];
-    "Sequential agents" [shape=box];
-    "Parallel dispatch" [shape=box];
-
-    "Multiple failures?" -> "Are they independent?" [label="yes"];
-    "Are they independent?" -> "Single agent investigates all" [label="no - related"];
-    "Are they independent?" -> "Can they work in parallel?" [label="yes"];
-    "Can they work in parallel?" -> "Parallel dispatch" [label="yes"];
-    "Can they work in parallel?" -> "Sequential agents" [label="no - shared state"];
-}
+```yaml
+problem:
+expected:
+observed:
+evidence: # exact references and bounded relevant excerpts
+flow:
+hypotheses:
+options:
+constraints:
+questions: # specific decisions needed to unblock progress
 ```
 
-**Use when:**
-- 3+ test files failing with different root causes
-- Multiple subsystems broken independently
-- Each problem can be understood without context from others
-- No shared state between investigations
+The architect returns the selected option, rationale, constraints, risks, uncertainty, and required checks.
+The coordinator incorporates this into the executor brief. Acceptance criteria are not proof of success.
 
-**Do not dispatch implementation yet when:**
-- Failures are related (fix one might fix others)
-- Needed system context or contracts have not yet been established
-- Agents would interfere with each other
+## Retry and architect budget
 
-## The Pattern
+The coordinator may retry a failed discovery/coordination attempt once with a narrower
+scope justified by evidence. An executor self-debugs implementation/check failures for
+one or two bounded rounds, then escalates unresolved decisions with evidence.
+Do not invoke an architect for every test failure, environmental problem, or routine fix.
+Report missing access/resources as blockers; avoid repeated unchanged attempts.
 
-### 1. Identify Independent Domains
+Allow at most two substantive architect requests per task, including follow-up questions
+and requests to existing agents. Status polling does not count. Keep the task-wide count
+across delegation and continuations; opening another agent does not reset it.
+Follow-ups require an unresolved decision or new evidence/conflict. If exhausted,
+report the blocker or obtain an explicit user-approved extension;
+never skip required checks, review, or governance to fit the budget.
 
-Group failures by what's broken:
-- File A tests: Tool approval flow
-- File B tests: Batch completion behavior
-- File C tests: Abort functionality
+Use the mapped architect effort, normally medium. Raise to high only after medium was
+insufficient; explain why. Higher effort requires explicit escalation and runtime support.
+An effort increase or substantive follow-up still counts toward the same request budget.
 
-Each domain is independent - fixing tool approval doesn't affect abort tests.
+## Integration, review, and final evidence
 
-### 2. Create Focused Agent Tasks
+The coordinator checks returned claims against actual diffs and evidence. The executor
+owns integration edits, review fixes, authorized documentation/ticket updates, and checks.
+Run affected tests and required build/lint/documentation checks; run the full relevant
+suite when the task or project requires it. Label scoped test evidence accurately.
 
-Each Luna implementation agent gets:
-- **Specific scope:** One test file or subsystem
-- **Clear goal:** Make these tests pass
-- **Constraints:** Don't change other code
-- **Expected output:** Summary of what you found and fixed
+When independent review applies, the reviewer examines the actual integrated changes
+and check results. Route corrections to the executor. If subsequent changes affect
+reviewed content, refresh affected checks and review; never reuse stale approval.
+Authorized record updates must reproduce actual verdicts, evidence, and blockers.
 
-### 3. Dispatch in Parallel
+Report implementation, tests/build, independent review, integration/runtime, deployment,
+approval, and ticket/Flow closure separately. Worker completion, fixture success, or
+a bounded review cannot prove runtime operation or satisfy remaining acceptance gates.
 
-Astra issues all ready Luna implementation dispatches in the same response — they run in parallel:
+## Observability and rollout assessment
 
-```text
-Luna (`gpt-5.6-luna`, `max`): "Fix agent-tool-abort.test.ts failures"
-Luna (`gpt-5.6-luna`, `max`): "Fix batch-completion-behavior.test.ts failures"
-Luna (`gpt-5.6-luna`, `max`): "Fix tool-approval-race-conditions.test.ts failures"
-# All three run concurrently.
-```
+Keep a compact task record in the normal result/report channel, without requiring new
+artifacts or an automated scheduler. Record role assignments, observed model/effort
+requests and actual identity when exposed, spawn count, architect reasons/request count,
+outcomes, tests/build results and scope, retries, and duration.
+Record input/output tokens only when actually available; otherwise use null.
+Distinguish requested configuration from observed execution; never estimate missing telemetry.
 
-Submit each independent dispatch without waiting for earlier agents to finish. Tool-call message boundaries do not determine concurrency; the agents' running lifetimes do.
-
-### 4. Review and Integrate
-
-When Luna returns:
-- Astra reads the summary and reviews the actual changes and evidence without editing them.
-- Astra identifies conflicts or required corrections and sends a bounded implementation brief to Luna.
-- Luna integrates authorized changes, applies review fixes, updates authorized documentation or ticket records, and runs the affected and required final tests.
-- Astra performs the final read-only evidence assessment. If final fixes or tests changed reviewed content, repeat Astra's review and the affected tests before reporting a verdict.
-
-## Agent Prompt Structure
-
-Good agent prompts are:
-1. **Focused** - One clear problem domain
-2. **Self-contained** - All context needed to understand the problem
-3. **Specific about output** - What should the agent return?
-
-```markdown
-Fix the 3 failing tests in src/agents/agent-tool-abort.test.ts:
-
-1. "should abort tool with partial output capture" - expects 'interrupted at' in message
-2. "should handle mixed completed and aborted tools" - fast tool aborted instead of completed
-3. "should properly track pendingToolCount" - expects 3 results but gets 0
-
-These are timing/race condition issues. Your task:
-
-1. Read the test file and understand what each test verifies
-2. Identify root cause - timing issues or actual bugs?
-3. Fix by:
-   - Replacing arbitrary timeouts with event-based waiting
-   - Fixing bugs in abort implementation if found
-   - Adjusting test expectations if testing changed behavior
-
-Do NOT just increase timeouts - find the real issue.
-
-Return: Summary of what you found and what you fixed.
-```
-
-## Common Mistakes
-
-**❌ Too broad:** "Fix all the tests" - agent gets lost
-**✅ Specific:** "Fix agent-tool-abort.test.ts" - focused scope
-
-**❌ No context:** "Fix the race condition" - agent doesn't know where
-**✅ Context:** Paste the error messages and test names
-
-**❌ No constraints:** Agent might refactor everything
-**✅ Constraints:** "Do NOT change production code" or "Fix tests only"
-
-**❌ Vague output:** "Fix it" - you don't know what changed
-**✅ Specific:** "Return summary of root cause and changes"
-
-## When NOT to Use
-
-**Related failures:** Fixing one might fix others - investigate together first
-**Need full context:** Establish the required overview first, then reassess independent work
-**Exploratory debugging:** You don't know what's broken yet
-**Shared state:** Agents would interfere (editing same files, using same resources)
-
-## Real Example from Session
-
-**Scenario:** 6 test failures across 3 files after major refactoring
-
-**Failures:**
-- agent-tool-abort.test.ts: 3 failures (timing issues)
-- batch-completion-behavior.test.ts: 2 failures (tools not executing)
-- tool-approval-race-conditions.test.ts: 1 failure (execution count = 0)
-
-**Decision:** Independent domains - abort logic separate from batch completion separate from race conditions
-
-**Dispatch:**
-```
-Agent 1 → Fix agent-tool-abort.test.ts
-Agent 2 → Fix batch-completion-behavior.test.ts
-Agent 3 → Fix tool-approval-race-conditions.test.ts
-```
-
-**Results:**
-- Agent 1: Replaced timeouts with event-based waiting
-- Agent 2: Fixed event structure bug (threadId in wrong place)
-- Agent 3: Added wait for async tool execution to complete
-
-**Review and integration:** Astra's read-only review found no conflicts; Luna integrated the fixes and ran the final suite, which was green.
-
-## Verification
-
-After Luna returns:
-1. **Review each summary** - Astra understands what changed and checks the actual diff read-only
-2. **Check for conflicts** - Astra identifies whether Luna agents edited the same code
-3. **Integrate and test** - Luna applies authorized corrections and runs affected-scope tests and the full relevant suite when required
-4. **Spot check and assess evidence** - Astra performs the final read-only assessment; repeat review and affected tests if final changes alter reviewed content
+After about twenty real tasks or one week, assess routing using observed data.
+Targets: architect below 20% of total weighted usage and at least 70% of discovery calls
+on the low-cost coordinator/explorer mapping. Define the weighting from available usage
+and cost data; if unavailable, report weighted usage as null, not inferred from spawn count.
+Compare quality, missed impacts, retries, regressions, and duration against available baseline.
+These are observational targets, not promised savings or claims of achieved acceptance.
+Adjust routing, effort, or capacity only with evidence and authority; persist mapping changes only when authorized.
