@@ -4,23 +4,23 @@ Read this reference before dispatch. This is policy interpreted by the agent, no
 
 ## Approved mapping
 
-This mapping implements the user's clarified Luna-first plan: Luna owns coordination, discovery, aggregation, and independent review; a separate coding executor implements and tests; Astra is consulted only for difficult decisions or unresolved blockers. The bindings below were checked against the collaboration runtime on 2026-09-27. Validate them afresh in each task; the date is evidence of a snapshot, not a promise of future availability.
+This mapping implements the user's clarified Luna-first plan: Luna owns coordination, discovery, aggregation, implementation, tests, fixes, and independent review. Executor and reviewer are separate agents using Luna; Astra is consulted only for difficult decisions or unresolved blockers. The bindings below were checked against the collaboration runtime on 2026-09-27. Validate them afresh in each task; the date is evidence of a snapshot, not a promise of future availability.
 
 | Role | Preferred model | Effort policy | Approved alternative model |
 | --- | --- | --- | --- |
 | `coordinator` | `gpt-6-luna` | First supported: `ultra`, then `xhigh` | None |
 | `explorer` | `gpt-6-luna` | First supported: `ultra`, then `xhigh` | None |
-| `executor` | `gpt-6-sol` | `high` | None |
+| `executor` | `gpt-6-luna` | First supported: `ultra`, then `xhigh` | None |
 | `reviewer` | `gpt-6-luna` | First supported: `ultra`, then `xhigh`; independent agent | None |
 | `architect` | `gpt-6-astra` | `medium` initially | None |
 
-The plan names GPT-5.3 Codex for execution, but that model is not exposed by the checked spawn tool. To restore the plan's separate coding-executor role, this binding returns to the previously approved `gpt-6-sol` / `high` mapping. This is a disclosed runtime adaptation, not a claim that GPT-5.3 Codex is running. The user's request to follow the plan and use Luna for review supersedes the earlier Astra-low executor/reviewer override.
+The user's latest clarification explicitly assigns the executor to Luna as well. This supersedes the historical executor model in the source plan and all earlier executor/reviewer overrides. The executor remains a distinct work role and the reviewer remains an independent agent; neither role requires a different model family.
 
-Routine discovery, aggregation, and independent review stay on Luna. Independence means a separate reviewer agent assessing the actual diff and evidence, not a different model family. Route its concrete fixes back to the executor. Only an unresolved decision requiring architect judgment goes to Astra; a review request, ordinary finding, or test failure alone is not sufficient.
+Routine discovery, aggregation, implementation, tests, fixes, and independent review stay on Luna. Independence means a separate reviewer agent assessing the actual diff and evidence, not a different model family. Route its concrete fixes back to the Luna executor. Only an unresolved decision requiring architect judgment goes to Astra; a review request, ordinary finding, or test failure alone is not sufficient.
 
-Resolved flow: Luna main and explorers gather evidence; simple tasks finish on Luna; clear implementation goes directly to the coding executor; difficult decisions go to Astra and return to the executor; when independent review applies, a separate Luna reviewer checks the result and the executor fixes findings before Luna aggregates the final evidence. Preserve all project review and acceptance gates.
+Resolved flow: Luna main and explorers gather evidence; simple tasks finish on Luna; clear implementation goes directly to a Luna executor; difficult decisions go to Astra and return to the Luna executor; when independent review applies, a separate Luna reviewer checks the result and the Luna executor fixes findings before Luna aggregates the final evidence. Preserve all project review and acceptance gates.
 
-The user's latest Luna preference is `ultra` when supported, otherwise `xhigh`, for coordinator, explorer, and reviewer. In the checked snapshot, `gpt-6-luna` supports `xhigh` and `max`, but not `ultra`, so that snapshot resolves to `xhigh`. Live support takes precedence over this dated observation. Do not select `max` just because it is available. If neither preferred effort is supported, report the unsupported binding rather than silently lowering the preference.
+The user's latest Luna preference is `ultra` when supported, otherwise `xhigh`, for coordinator, explorer, executor, and reviewer. In the checked snapshot, `gpt-6-luna` supports `xhigh` and `max`, but not `ultra`, so that snapshot resolves to `xhigh`. Live support takes precedence over this dated observation. Do not select `max` just because it is available. If neither preferred effort is supported, report the unsupported binding rather than silently lowering the preference.
 
 For architect work, raise effort to `high` only when `medium` has not resolved the decision. Higher levels require an explicit escalation choice and runtime support; they remain subject to the task's architect-request budget. A higher effort is not a reason to restart the request counter.
 
