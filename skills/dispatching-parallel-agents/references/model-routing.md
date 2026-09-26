@@ -4,17 +4,17 @@ Read this reference before dispatch. This is policy interpreted by the agent, no
 
 ## Approved mapping
 
-This mapping implements the user's Luna-first, Astra-on-demand plan using models exposed by the collaboration runtime on 2026-09-26. Validate it afresh in each task; the date is evidence of a checked snapshot, not a promise of future availability.
+This mapping implements the user's Luna-first, architect-on-demand workflow and latest executor/reviewer override using models exposed by the collaboration runtime on 2026-09-26. Validate it afresh in each task; the date is evidence of a checked snapshot, not a promise of future availability.
 
 | Role | Preferred model | Effort policy | Approved alternative model |
 | --- | --- | --- | --- |
 | `coordinator` | `gpt-6-luna` | First supported: `ultra`, then `xhigh` | None |
 | `explorer` | `gpt-6-luna` | First supported: `ultra`, then `xhigh` | None |
-| `executor` | `gpt-6-sol` | `high` | None |
-| `reviewer` | `gpt-6-sol` | `high`; use an agent independent of the implementation author | None |
+| `executor` | `gpt-6-astra` | `low` | None |
+| `reviewer` | `gpt-6-astra` | `low`; use an agent independent of the implementation author | None |
 | `architect` | `gpt-6-astra` | `medium` initially | None |
 
-The user approved `gpt-6-sol` for the plan's executor role because its historical GPT-5.3 Codex target was not exposed by the checked spawn runtime. Do not try to dispatch that historical target or infer an unverified model ID. Concrete model names are bindings, not the definitions of the roles.
+The user selected `gpt-6-astra` with `low` effort for both executor and reviewer. These roles remain distinct from the architect, even though they share its model family. Routine executor/reviewer requests do not consume the architect-escalation budget; record their actual model usage separately from role-based escalation counts. Review still requires an agent independent of the implementation author. Concrete model names are bindings, not the definitions of the roles.
 
 The user's latest Luna preference is `ultra` when supported, otherwise `xhigh`, for both coordinator and explorer. In the checked snapshot, `gpt-6-luna` supports `xhigh` and `max`, but not `ultra`, so that snapshot resolves to `xhigh`. Live support takes precedence over this dated observation. Do not select `max` just because it is available. If neither preferred effort is supported, report the unsupported binding rather than silently lowering the preference.
 
