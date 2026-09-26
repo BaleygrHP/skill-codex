@@ -50,23 +50,34 @@ The coordinator establishes relevant contracts and evidence before routing:
 - Independent read-only domains: dispatch disjoint explorers concurrently.
 - Clear implementation: send a bounded brief directly to an executor, including
   single-file edits. A small score does not make implementation coordinator work.
-- Complex architecture, security, concurrency, consistency, or ambiguous business
-  decisions: gather evidence, obtain a compact architect decision, then send the
-  resolved implementation brief to an executor.
+- Unresolved difficult architecture, security, concurrency, consistency, or business
+  decisions: gather evidence, obtain a compact architect decision when needed, then
+  send the resolved implementation brief to an executor. A familiar, established
+  solution in one of these domains does not automatically require an architect.
 - Independent review: use a reviewer when requested, required by project governance,
-  or warranted by risk. Apply its default mapping; review is not an automatic architect call.
+  or warranted by risk. The reviewer uses the coordinator/explorer model family from
+  the mapping in a separate agent; review does not require a different model family.
+  Return ordinary findings to the executor. Escalate only a specific difficult decision
+  or unresolved blocker, not review itself.
 
 Use a lightweight score as a heuristic: start at zero; add `+3` for architecture or a
 large refactor, `+2` each for cross-module impact, ambiguity, uncertain production root
 cause, security, concurrency/consistency, or migration; subtract `2` each for a simple
 single-file change and clear implementation. Scores `<=1` suggest simple handling,
-`2-4` clear implementation, and `>=5` an architect decision before implementation.
+`2-4` clear implementation, and `>=5` a check for unresolved decisions requiring an architect.
 Risk triggers and actual dependencies override arithmetic. State the unresolved
 decision and its risk before invoking an architect; a failing command or test alone
 does not justify escalation.
 
 An executor never self-approves. A reviewer must be independent of the implementation
-it reviews. The coordinator's aggregation is not a substitute for required review.
+it reviews. Independence concerns the agent and its work, not a requirement to switch
+model families. The coordinator's aggregation is not a substitute for required review.
+
+The default handoff is coordinator/explorers → executor → independent reviewer when
+applicable → coordinator final assessment. Simple read-only work can finish with the
+coordinator. A difficult unresolved decision branches to the architect, whose decision
+returns to the executor; ordinary review findings loop to the executor for fixes/checks
+and then to the reviewer. There is no mandatory architect approval at completion.
 
 ## Preflight: task, Flow, and tickets
 
